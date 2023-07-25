@@ -1,3 +1,4 @@
+import argparse
 import os
 import random
 import redis
@@ -8,6 +9,11 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 
 from parser import parse_qa
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--path', default='questions/1vs1200.txt', help='Путь к файлу с вопросами и ответами')
+args = parser.parse_args()
 
 
 class States(Enum):
@@ -73,7 +79,7 @@ def main() -> None:
         password=os.getenv('REDIS_PASSWORD')
     )
 
-    qa_dict = parse_qa()
+    qa_dict = parse_qa(args.path)
     updater = Updater(os.getenv('TG_TOKEN'))
     updater.dispatcher.bot_data["qa_dict"] = qa_dict
     updater.dispatcher.bot_data["redis"] = redis_db

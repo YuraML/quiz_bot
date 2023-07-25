@@ -1,3 +1,4 @@
+import argparse
 import os
 import random
 import redis
@@ -8,6 +9,11 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 from parser import parse_qa
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--path', default='questions/1vs1200.txt', help='Путь к файлу с вопросами и ответами')
+args = parser.parse_args()
 
 
 def get_keyboard():
@@ -26,7 +32,7 @@ def main():
     vk_session = vk_api.VkApi(token=os.getenv('VK_TOKEN'))
     longpoll = VkLongPoll(vk_session)
     vk = vk_session.get_api()
-    qa_dict = parse_qa()
+    qa_dict = parse_qa(args.path)
 
     redis_db = redis.Redis(
         host=os.getenv('REDIS_HOST'),

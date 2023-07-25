@@ -1,7 +1,6 @@
-def parse_qa():
-    file = 'questions/1vs1200.txt'
+def parse_qa(path):
     try:
-        with open(file, 'r', encoding='KOI8-R') as file:
+        with open(path, 'r', encoding='KOI8-R') as file:
             file_contents = file.read()
     except Exception as e:
         print(f"Ошибка прочтения файла: {e}")
