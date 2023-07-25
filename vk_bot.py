@@ -32,7 +32,12 @@ def main():
     vk_session = vk_api.VkApi(token=os.getenv('VK_TOKEN'))
     longpoll = VkLongPoll(vk_session)
     vk = vk_session.get_api()
-    qa_dict = parse_qa(args.path)
+
+    try:
+        qa_dict = parse_qa(args.path)
+    except Exception as e:
+        print(f"Ошибка прочтения файла: {e}")
+        return
 
     redis_db = redis.Redis(
         host=os.getenv('REDIS_HOST'),

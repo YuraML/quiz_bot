@@ -79,7 +79,12 @@ def main() -> None:
         password=os.getenv('REDIS_PASSWORD')
     )
 
-    qa_dict = parse_qa(args.path)
+    try:
+        qa_dict = parse_qa(args.path)
+    except Exception as e:
+        print(f"Ошибка прочтения файла: {e}")
+        return
+
     updater = Updater(os.getenv('TG_TOKEN'))
     updater.dispatcher.bot_data["qa_dict"] = qa_dict
     updater.dispatcher.bot_data["redis"] = redis_db
