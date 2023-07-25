@@ -27,6 +27,68 @@ def get_keyboard():
     return keyboard.get_keyboard()
 
 
+def handle_start(vk, user_id):
+    vk.messages.send(user_id=user_id,
+                     message='Привет! Я бот для викторин!',
+                     random_id=random.randint(1, 1000),
+                     keyboard=get_keyboard())
+
+
+def handle_new_question_request(vk, user_id, qa_dict, redis_db):
+    questions = list(qa_dict.keys())
+    question = random.choice(questions)
+
+    vk.messages.send(user_id=user_id,
+                     message=question,
+                     random_id=random.randint(1, 1000),
+                     keyboard=get_keyboard())
+
+    redis_db.set(user_id, question)
+
+
+def handle_give_up(vk, user_id, qa_dict, redis_db):
+    last_question = redis_db.get(user_id).decode('utf-8')
+    correct_answer = qa_dict[last_question]
+    vk.messages.send(user_id=user_id,
+                     message=correct_answer,
+                     random_id=random.randint(1, 1000),
+                     keyboard=get_keyboard())
+
+    questions = list(qa_dict.keys())
+    question = random.choice(questions)
+    vk.messages.send(user_id=user_id,
+                     message=question,
+                     random_id=random.randint(1, 1000),
+                     keyboard=get_keyboard())
+
+    redis_db.set(user_id, question)
+
+
+def handle_my_score(vk, user_id):
+    vk.messages.send(user_id=user_id,
+                     message='Функционал подсчета очков пока не реализован.',
+                     random_id=random.randint(1, 1000),
+                     keyboard=get_keyboard())
+
+
+def handle_solution_attempt(vk, event, user_id, qa_dict, redis_db):
+    last_question = redis_db.get(user_id).decode('utf-8')
+    full_correct_answer = qa_dict[last_question]
+    cut_correct_answer = full_correct_answer.replace("Ответ: ", "")
+    correct_answer = cut_correct_answer.split('.')[0].split('(')[0].lower()
+
+    if event.text.lower() == correct_answer:
+        vk.messages.send(user_id=user_id,
+                         message="Правильно! Для следующего вопроса нажми «Новый вопрос».",
+                         random_id=random.randint(1, 1000),
+                         keyboard=get_keyboard())
+    else:
+        vk.messages.send(user_id=user_id,
+                         message="Неправильно… Попробуешь ещё раз?",
+                         random_id=random.randint(1, 1000),
+                         keyboard=get_keyboard())
+
+
 def main():
     load_dotenv()
     vk_session = vk_api.VkApi(token=os.getenv('VK_TOKEN'))
@@ -50,60 +112,19 @@ def main():
             user_id = event.user_id
 
             if event.text == 'Начать':
-                vk.messages.send(user_id=user_id,
-                                 message='Привет! Я бот для викторин!',
-                                 random_id=random.randint(1, 1000),
-                                 keyboard=get_keyboard())
+                handle_start(vk, user_id)
 
             elif event.text == 'Новый вопрос':
-                questions = list(qa_dict.keys())
-                question = random.choice(questions)
-
-                vk.messages.send(user_id=user_id,
-                                 message=question,
-                                 random_id=random.randint(1, 1000),
-                                 keyboard=get_keyboard())
-                redis_db.set(user_id, question)
+                handle_new_question_request(vk, user_id, qa_dict, redis_db)
 
             elif event.text == 'Сдаться':
-                last_question = redis_db.get(user_id).decode('utf-8')
-                correct_answer = qa_dict[last_question]
-                vk.messages.send(user_id=user_id,
-                                 message=correct_answer,
-                                 random_id=random.randint(1, 1000),
-                                 keyboard=get_keyboard())
-
-                questions = list(qa_dict.keys())
-                question = random.choice(questions)
-                vk.messages.send(user_id=user_id,
-                                 message=question,
-                                 random_id=random.randint(1, 1000),
-                                 keyboard=get_keyboard())
-
-                redis_db.set(user_id, question)
+                handle_give_up(vk, user_id, qa_dict, redis_db)
 
             elif event.text == 'Мой счет':
-                vk.messages.send(user_id=user_id,
-                                 message='Функционал подсчета очков пока не реализован.',
-                                 random_id=random.randint(1, 1000),
-                                 keyboard=get_keyboard())
+                handle_my_score(vk, user_id)
 
             else:
-                last_question = redis_db.get(user_id).decode('utf-8')
-                full_correct_answer = qa_dict[last_question]
-                cut_correct_answer = full_correct_answer.replace("Ответ: ", "")
-                correct_answer = cut_correct_answer.split('.')[0].split('(')[0].lower()
-
-                if event.text.lower() == correct_answer:
-                    vk.messages.send(user_id=user_id,
-                                     message="Правильно! Для следующего вопроса нажми «Новый вопрос».",
-                                     random_id=random.randint(1, 1000),
-                                     keyboard=get_keyboard())
-                else:
-                    vk.messages.send(user_id=user_id,
-                                     message="Неправильно… Попробуешь ещё раз?",
-                                     random_id=random.randint(1, 1000),
-                                     keyboard=get_keyboard())
+                handle_solution_attempt(vk, event, user_id, qa_dict, redis_db)
 
 
 if __name__ == '__main__':
