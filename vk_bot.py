@@ -11,11 +11,6 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from parser import parse_qa
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--path', default='questions/1vs1200.txt', help='Путь к файлу с вопросами и ответами')
-args = parser.parse_args()
-
-
 def get_keyboard():
     keyboard = VkKeyboard(one_time=False)
 
@@ -91,6 +86,11 @@ def handle_solution_attempt(vk, event, user_id, qa_dict, redis_db):
 
 def main():
     load_dotenv()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path', default='questions/1vs1200.txt', help='Путь к файлу с вопросами и ответами')
+    args = parser.parse_args()
+
     vk_session = vk_api.VkApi(token=os.getenv('VK_TOKEN'))
     longpoll = VkLongPoll(vk_session)
     vk = vk_session.get_api()

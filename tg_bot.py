@@ -11,11 +11,6 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 from parser import parse_qa
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--path', default='questions/1vs1200.txt', help='Путь к файлу с вопросами и ответами')
-args = parser.parse_args()
-
-
 class States(Enum):
     QUESTION = 1
     ANSWER = 2
@@ -72,6 +67,10 @@ def handle_give_up(update: Update, context: CallbackContext) -> None:
 
 def main() -> None:
     load_dotenv()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path', default='questions/1vs1200.txt', help='Путь к файлу с вопросами и ответами')
+    args = parser.parse_args()
 
     redis_db = redis.Redis(
         host=os.getenv('REDIS_HOST'),
